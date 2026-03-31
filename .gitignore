@@ -1,0 +1,47 @@
+# Build cache (heavy files)
+build/*.dill
+build/*.dill.track.dill
+build/924623c4c24fb74a41e75275c77c4fa2/
+build/native_hooks/
+build/web/canvaskit/skwasm*
+build/web/canvaskit/*.symbols
+build/web/*.map
+
+# Flutter
+.dart_tool/
+.packages
+
+# Platform folders
+android/
+ios/
+windows/
+linux/
+macos/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+package-lock.json
+
+# Heavy/temp files
+*.zip
+*.bat
+*.m4a
+media/
+backend/media/
+cloud_deploy/
+full_deploy/
+render_deploy/
+*.txt
+components/
+.flutter-plugins-dependencies
+.metadata
+assets/

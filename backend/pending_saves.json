@@ -1,0 +1,215 @@
+{
+  "save_BR366551_1774330466": {
+    "name": "TestSave",
+    "phone": "0911000001",
+    "reg_id": "BR366551",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR366551\n👤 Student: TestSave\n🎓 Grade: Grade 9\n📚 Section: B\n📞 Phone: 0911000001\n👨 Father: FatherTest\n👩 Mother: MotherTest",
+    "rtype": "registration",
+    "file_ids": []
+  },
+  "save_BR551913_1774330652": {
+    "name": "TestSave",
+    "phone": "0975047994",
+    "reg_id": "BR551913",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR551913\n👤 Student: TestSave\n🎓 Grade: Grade 9\n📚 Section: B\n📞 Phone: 0975047994\n👨 Father: FatherTest\n👩 Mother: MotherTest",
+    "rtype": "registration",
+    "file_ids": []
+  },
+  "save_PAY766560_1774330866": {
+    "name": "wert",
+    "phone": "0964568122",
+    "reg_id": "PAY766560",
+    "details": "💸 NEW FEE PAYMENT\n\n🆔 ID: PAY766560\n👤 Student: wert\n🎓 Grade: Grade 10\n📚 Section: B\n📞 Phone: 0964568122",
+    "rtype": "payment",
+    "file_ids": []
+  },
+  "save_BR000001_1774335124": {
+    "name": "DiagTest",
+    "phone": "0900000000",
+    "reg_id": "BR000001",
+    "details": "Grade: 10\nSection: A",
+    "rtype": "registration",
+    "img_path": null,
+    "file_ids": []
+  },
+  "save_TestStudent_1774719423": {
+    "key": "save_TestStudent_1774719423",
+    "name": "Test Student",
+    "phone": "0911223344",
+    "reg_id": "",
+    "details": "Grade: 5",
+    "rtype": "registration",
+    "img_path": null
+  },
+  "save_SystemStatusBot_1774722458": {
+    "key": "save_SystemStatusBot_1774722458",
+    "name": "System Status Bot",
+    "phone": "TEST-OK",
+    "reg_id": "",
+    "details": "The backend system has successfully connected. All services OK.",
+    "rtype": "registration",
+    "img_path": null
+  },
+  "save_BR999999_1774730131": {
+    "key": "save_BR999999_1774730131",
+    "name": "Python Test",
+    "phone": "09121212",
+    "reg_id": "BR999999",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR999999\n👤 Student: Python Test\n📞 Phone: 09121212",
+    "rtype": "registration",
+    "img_path": null
+  },
+  "save_BR88888_1774730133": {
+    "key": "save_BR88888_1774730133",
+    "name": "Photo Test",
+    "phone": "12345",
+    "reg_id": "BR88888",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR88888\n👤 Student: Photo Test",
+    "rtype": "registration",
+    "img_path": "Photo Test_1774730133_0.jpg"
+  },
+  "save_BR687244_1774730387": {
+    "key": "save_BR687244_1774730387",
+    "name": "okoko",
+    "phone": "okok",
+    "reg_id": "BR687244",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR687244\n👤 Student: okoko\n🎓 Grade: Grade 9\n📚 Section: B\n📞 Phone: okok\n👨 Father: okok\n👩 Mother: okok",
+    "rtype": "registration",
+    "img_path": "okoko_1774730387_0.jpg,okoko_1774730387_1.jpg"
+  },
+  "save_BR734612_1774730434": {
+    "key": "save_BR734612_1774730434",
+    "name": "okoko",
+    "phone": "09876543",
+    "reg_id": "BR734612",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR734612\n👤 Student: okoko\n🎓 Grade: Grade 9\n📚 Section: B\n📞 Phone: 09876543\n👨 Father: okok\n👩 Mother: okok",
+    "rtype": "registration",
+    "img_path": "okoko_1774730434_0.jpg,okoko_1774730434_1.jpg"
+  },
+  "save_BR868544_1774730568": {
+    "key": "save_BR868544_1774730568",
+    "name": "okoko",
+    "phone": "09876543",
+    "reg_id": "BR868544",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR868544\n👤 Student: okoko\n🎓 Grade: Grade 9\n📚 Section: B\n📞 Phone: 09876543\n👨 Father: okok\n👩 Mother: okok",
+    "rtype": "registration",
+    "img_path": "okoko_1774730568_0.jpg,okoko_1774730568_1.jpg,okoko_1774730568_2.jpg,okoko_1774730568_3.jpg"
+  },
+  "save_BR221529_1774730821": {
+    "key": "save_BR221529_1774730821",
+    "name": "seoo",
+    "phone": "0987",
+    "reg_id": "BR221529",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR221529\n👤 Student: seoo\n🎓 Grade: Grade 9\n📚 Section: A\n📞 Phone: 0987\n👨 Father: ivi\n👩 Mother: niv",
+    "rtype": "registration",
+    "img_path": "seoo_1774730821_0.jpg,seoo_1774730821_1.jpg,seoo_1774730821_2.jpg"
+  },
+  "save_PAY335192_1774730935": {
+    "key": "save_PAY335192_1774730935",
+    "name": "pllp",
+    "phone": "0987654",
+    "reg_id": "PAY335192",
+    "details": "💸 NEW FEE PAYMENT\n\n🆔 ID: PAY335192\n👤 Student: pllp\n🎓 Grade: Grade 9\n📚 Section: A\n📞 Phone: 0987654",
+    "rtype": "payment",
+    "img_path": "pllp_1774730935_0.jpg,pllp_1774730935_1.jpg"
+  },
+  "save_BR299152_1774770499": {
+    "key": "save_BR299152_1774770499",
+    "name": "lop",
+    "phone": "mkma",
+    "reg_id": "BR299152",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR299152\n👤 Student: lop\n🎓 Grade: Grade 9\n📚 Section: A\n📞 Phone: mkma \n👨 Father: loui\n👩 Mother: lm,wsx",
+    "rtype": "registration",
+    "img_path": "lop_1774770499_0.jpg,lop_1774770499_1.jpg"
+  },
+  "save_BR272913_1774787573": {
+    "key": "save_BR272913_1774787573",
+    "name": "llo",
+    "phone": "09876543",
+    "reg_id": "BR272913",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR272913\n👤 Student: llo\n🎓 Grade: Grade 10\n📚 Section: A\n📞 Phone: 09876543\n👨 Father: nknmk\n👩 Mother: knmnk",
+    "rtype": "registration",
+    "img_path": "llo_1774787573_0.jpg,llo_1774787573_1.jpg"
+  },
+  "save_BR479455_1774787779": {
+    "key": "save_BR479455_1774787779",
+    "name": "llo",
+    "phone": "09876543",
+    "reg_id": "BR479455",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR479455\n👤 Student: llo\n🎓 Grade: Grade 10\n📚 Section: A\n📞 Phone: 09876543\n👨 Father: nknmk\n👩 Mother: knmnk",
+    "rtype": "registration",
+    "img_path": "llo_1774787779_0.jpg,llo_1774787779_1.jpg"
+  },
+  "save_PAY916470_1774788216": {
+    "key": "save_PAY916470_1774788216",
+    "name": "seid",
+    "phone": "0987654",
+    "reg_id": "PAY916470",
+    "details": "💸 NEW FEE PAYMENT\n\n🆔 ID: PAY916470\n👤 Student: seid\n🎓 Grade: Grade 10\n📚 Section: A\n📞 Phone: 0987654",
+    "rtype": "payment",
+    "img_path": "seid_1774788216_0.jpg,seid_1774788216_1.jpg,seid_1774788216_doc0.m4a"
+  },
+  "save_Seid_1774796659": {
+    "key": "save_Seid_1774796659",
+    "name": "Seid",
+    "phone": "0911111111",
+    "reg_id": "",
+    "details": "Grade: 9\nSection: A\nFather: Ahmed\nMother: Fatima",
+    "rtype": "registration",
+    "img_path": null
+  },
+  "save_BR456136_1774796756": {
+    "key": "save_BR456136_1774796756",
+    "name": "seid",
+    "phone": "098765321",
+    "reg_id": "BR456136",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR456136\n👤 Student: seid\n🎓 Grade: Grade 9\n📚 Section: A\n📞 Phone: 098765321\n👨 Father: ahmed\n👩 Mother: mohamm",
+    "rtype": "registration",
+    "img_path": "seid_1774796756_0.jpg,seid_1774796756_1.jpg"
+  },
+  "save_BR503610_1774796803": {
+    "key": "save_BR503610_1774796803",
+    "name": "seid",
+    "phone": "098765321",
+    "reg_id": "BR503610",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR503610\n👤 Student: seid\n🎓 Grade: Grade 9\n📚 Section: A\n📞 Phone: 098765321\n👨 Father: jij\n👩 Mother: mohamm",
+    "rtype": "registration",
+    "img_path": "seid_1774796803_0.jpg,seid_1774796803_1.jpg"
+  },
+  "save_BR284934_1774899185": {
+    "key": "save_BR284934_1774899185",
+    "name": "lop",
+    "phone": "098765",
+    "reg_id": "BR284934",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR284934\n👤 Student: lop\n🎓 Grade: Grade 10\n📚 Section: A\n📞 Phone: 098765\n👨 Father: fater\n👩 Mother: moter",
+    "rtype": "registration",
+    "img_path": "lop_1774899185_0.jpg,lop_1774899185_1.jpg"
+  },
+  "save_BR411518_1774899311": {
+    "key": "save_BR411518_1774899311",
+    "name": "l0op",
+    "phone": "098765",
+    "reg_id": "BR411518",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR411518\n👤 Student: l0op\n🎓 Grade: Grade 10\n📚 Section: A\n📞 Phone: 098765\n👨 Father: fater\n👩 Mother: moter",
+    "rtype": "registration",
+    "img_path": "l0op_1774899311_0.jpg,l0op_1774899311_1.jpg,l0op_1774899311_2.jpg"
+  },
+  "save_BR424601_1774899324": {
+    "key": "save_BR424601_1774899324",
+    "name": "l0op",
+    "phone": "098765",
+    "reg_id": "BR424601",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR424601\n👤 Student: l0op\n🎓 Grade: Grade 10\n📚 Section: A\n📞 Phone: 098765\n👨 Father: fater\n👩 Mother: moter",
+    "rtype": "registration",
+    "img_path": "l0op_1774899324_0.jpg,l0op_1774899324_1.jpg,l0op_1774899324_2.jpg"
+  },
+  "save_BR457786_1774899358": {
+    "key": "save_BR457786_1774899358",
+    "name": "l0op",
+    "phone": "098765",
+    "reg_id": "BR457786",
+    "details": "🎯 NEW REGISTRATION\n\n🆔 ID: BR457786\n👤 Student: l0op\n🎓 Grade: Grade 10\n📚 Section: A\n📞 Phone: 098765\n👨 Father: fater\n👩 Mother: moter",
+    "rtype": "registration",
+    "img_path": "l0op_1774899358_0.jpg,l0op_1774899358_1.jpg"
+  }
+}
