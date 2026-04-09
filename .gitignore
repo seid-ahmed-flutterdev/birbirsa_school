@@ -41,7 +41,11 @@ cloud_deploy/
 full_deploy/
 render_deploy/
 *.txt
+!requirements.txt
+!**/requirements.txt
 components/
 .flutter-plugins-dependencies
 .metadata
 assets/
+
+
