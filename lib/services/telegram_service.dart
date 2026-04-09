@@ -13,18 +13,20 @@ class TelegramService {
 
   // Backend URL — always absolute so http.post/get resolves correctly on any device
   static String get _origin {
-    // Determine the host dynamically on Web so it works via network IPs
     if (kIsWeb) {
       final origin = Uri.base.origin;
-      // if it's served on a different port like 8080 during dev without proxy,
-      // you could return origin:3000, but normally Flutter Web in prod is proxying it.
-      // Assuming a unified host or a fallback:
-      return origin.contains('localhost') || origin.contains('127.0.0.1')
-          ? 'http://localhost:3000'
-          : origin.replaceFirst(
-              RegExp(r':\d+$'),
-              ':3000',
-            ); // enforce port 3000 on network IP
+      // Local dev: force port 3000 where server.py runs
+      if (origin.contains('localhost') || origin.contains('127.0.0.1')) {
+        return 'http://localhost:3000';
+      }
+      // Check if origin has a non-standard port (e.g. 192.168.x.x:8080)
+      final uri = Uri.parse(origin);
+      if (uri.host.startsWith('192.') || uri.host.startsWith('10.')) {
+        // LAN IP — force port 3000
+        return 'http://${uri.host}:3000';
+      }
+      // Cloud deployment (Railway, Render, etc.) — same origin, no port change
+      return origin;
     }
     return 'http://localhost:3000';
   }
