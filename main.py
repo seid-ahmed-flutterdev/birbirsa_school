@@ -35,12 +35,9 @@ from urllib.parse import quote, urlparse
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 IS_RENDER = bool(os.environ.get('RENDER'))
-if IS_RENDER:
-    DATA_DIR  = '/data'
-    MEDIA_DIR = '/data/media'
-else:
-    DATA_DIR  = os.path.join(BASE_DIR, 'data')
-    MEDIA_DIR = os.path.join(BASE_DIR, 'media')
+# Free plan: always use the app's own writable directory (no disk mount needed)
+DATA_DIR  = os.path.join(BASE_DIR, 'data')
+MEDIA_DIR = os.path.join(BASE_DIR, 'media')
 
 DATA_FILE = os.path.join(DATA_DIR, 'content.json')
 REG_FILE  = os.path.join(DATA_DIR, 'registrations.json')

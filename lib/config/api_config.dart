@@ -5,7 +5,7 @@ class ApiConfig {
   //  ✅ SET YOUR RENDER BACKEND URL HERE (once deployed)
   //  Example: 'https://birbirsa-backend.onrender.com'
   // ─────────────────────────────────────────────────────────────
-  static const String _renderUrl = 'https://birbirsa-backend.onrender.com';
+  static const String _renderUrl = 'https://birbirsa-secondary-school.onrender.com';
 
   static String get baseUrl {
     if (kIsWeb) {
