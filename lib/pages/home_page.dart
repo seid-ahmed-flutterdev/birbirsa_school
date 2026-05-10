@@ -1391,15 +1391,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Get the best image URL for thumbnails in the grid.
-  /// Tries proxy_url first (CORS-safe for Image.network on web),
-  /// then direct_url, then plain url.
+  /// Priority: direct_url (fast Telegram CDN, saved by bot) > proxy_url (CORS-safe fallback)
   String? _getImageUrl(Map<String, dynamic> item) {
-    final proxy = item['proxy_url'] as String?;
-    final direct = item['direct_url'] as String?;
+    final direct = item['direct_url'] as String?;   // from backend content.json
+    final proxy = item['proxy_url'] as String?;      // constructed by Flutter
     final url = item['url'] as String?;
 
-    if (proxy != null && proxy.isNotEmpty) return _resolveUrl(proxy);
+    // Use direct Telegram CDN URL first — fastest, no proxy overhead
     if (direct != null && direct.isNotEmpty) return direct;
+    if (proxy != null && proxy.isNotEmpty) return _resolveUrl(proxy);
     if (url != null && url.isNotEmpty) return _resolveUrl(url);
     return null;
   }

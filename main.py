@@ -174,6 +174,7 @@ def media_proxy():
     out = Response(stream_with_context(resp.iter_content(8192)), status=resp.status_code)
     out.headers['Content-Type'] = resp.headers.get('Content-Type', 'application/octet-stream')
     out.headers['Access-Control-Allow-Origin'] = '*'
+    out.headers['Cache-Control'] = 'public, max-age=3600'  # Cache images 1 hour in browser
     
     if '.pdf' in f_info.file_path.lower():
         out.headers['Content-Type'] = 'application/pdf'
@@ -336,6 +337,7 @@ def run_advert_bot_loop():
                 content  = read_json(DATA_FILE)
                 type_str = 'text'
                 f_id     = None
+                direct_url = None
 
                 if message.photo:
                     type_str, f_id = 'image', message.photo[-1].file_id
@@ -350,12 +352,21 @@ def run_advert_bot_loop():
                 elif message.audio:
                     type_str, f_id = 'audio', message.audio.file_id
 
+                # ── Get direct Telegram CDN URL (fast loading, no proxy needed) ──
+                if f_id:
+                    try:
+                        file_info = bot.get_file(f_id)
+                        direct_url = f'https://api.telegram.org/file/bot{ADVERT_BOT_TOKEN}/{file_info.file_path}'
+                    except Exception as e:
+                        print(f'⚠️ Could not get direct URL: {e}')
+
                 title = message.caption or message.text or "School Update"
                 msg_id = message.message_id
 
                 content.insert(0, {
                     "type": type_str,
                     "file_id": f_id,
+                    "direct_url": direct_url,
                     "title": title,
                     "message_id": msg_id,
                     "date": datetime.now().isoformat()
