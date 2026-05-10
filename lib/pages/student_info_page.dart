@@ -7,6 +7,7 @@ import '../widgets/animated_background.dart';
 import 'home_page.dart'; // for SectionTitle, HeroHeader, MaxWidthContainer, ActionButton
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import '../config/api_config.dart';
 
 class StudentInfoPage extends StatefulWidget {
   const StudentInfoPage({super.key});
@@ -23,17 +24,10 @@ class _StudentInfoPageState extends State<StudentInfoPage> {
   String? _errorMsg;
   String? _statusMsg;
 
-  String get _origin {
-    if (kIsWeb) {
-      final origin = Uri.base.origin;
-      return origin.contains('localhost') || origin.contains('127.0.0.1')
-          ? 'http://localhost:3000'
-          : origin.replaceFirst(RegExp(r':\d+$'), ':3000');
-    }
-    return 'http://localhost:3000';
-  }
+  String get _origin => ApiConfig.baseUrl;
 
   Future<void> _search() async {
+
     final query = _searchController.text.trim();
     if (query.isEmpty) return;
 

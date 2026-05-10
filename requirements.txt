@@ -1,5 +1,5 @@
-flask
-flask-cors
-requests
-pyTelegramBotAPI
-gunicorn
+flask==3.0.3
+flask-cors==4.0.1
+requests==2.32.3
+pyTelegramBotAPI==4.21.0
+gunicorn==22.0.0

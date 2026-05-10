@@ -112,7 +112,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AnimatedBackground(
-        child: SingleChildScrollView(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 20),
           child: Center(
             child: MaxWidthContainer(
@@ -267,6 +269,31 @@ class _RegistrationPageState extends State<RegistrationPage> {
               ),
             ),
           ),
+        ),
+            // ── Back Arrow Button ──
+            Positioned(
+              top: 40,
+              left: 16,
+              child: SafeArea(
+                child: Material(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

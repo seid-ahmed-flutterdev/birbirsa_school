@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/app_colors.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/animated_background.dart';
+import '../config/api_config.dart';
 import '../services/telegram_service.dart';
 import 'registration_page.dart';
 import 'payment_page.dart';
@@ -189,10 +191,7 @@ class _HomePageState extends State<HomePage> {
                   'Student Info',
                   Icons.manage_search,
                   color: Colors.deepPurpleAccent,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const StudentInfoPage()),
-                  ),
+                  onTap: () => _showPasswordDialog(),
                 ),
               ],
             ).animate().fadeIn(delay: 500.ms).moveY(begin: 30, end: 0),
@@ -974,6 +973,16 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
+    // On web, open PDFs/docs directly in a new browser tab
+    // (LaunchMode.externalApplication does NOT work on Flutter Web)
+    if (kIsWeb && (type == 'pdf' || type == 'doc')) {
+      final resolvedUrl = url.startsWith('http://') || url.startsWith('https://')
+          ? url
+          : '${Uri.base.origin}$url';
+      launchUrl(Uri.parse(resolvedUrl), mode: LaunchMode.platformDefault);
+      return;
+    }
+
     // Inject the resolved best URL so ContentPreviewPage can use it directly
     final updatedItem = Map<String, dynamic>.from(item);
     updatedItem['url'] = url;
@@ -1007,16 +1016,377 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         content: SingleChildScrollView(
-          child: Text(
+          child: _buildRichTextWithPhones(
+            ctx,
             item['title']?.toString() ?? '',
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 16,
-              height: 1.6,
-            ),
           ),
         ),
       ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  PASSWORD DIALOG — protects Student Info page
+  // ─────────────────────────────────────────────────────────────
+  void _showPasswordDialog() {
+    final passwordController = TextEditingController();
+    bool obscure = true;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E1E2E),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurpleAccent.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.lock_outline,
+                      color: Colors.deepPurpleAccent,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Access Required',
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Enter the password to access student records.',
+                    style: TextStyle(color: Colors.white54, fontSize: 14),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: obscure,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Password',
+                      hintStyle: const TextStyle(color: Colors.white30),
+                      prefixIcon: const Icon(
+                        Icons.vpn_key,
+                        color: Colors.deepPurpleAccent,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscure ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.white38,
+                        ),
+                        onPressed: () {
+                          setDialogState(() => obscure = !obscure);
+                        },
+                      ),
+                      filled: true,
+                      fillColor: Colors.white10,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: Colors.deepPurpleAccent,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                    onSubmitted: (_) {
+                      _validatePassword(ctx, passwordController.text);
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _validatePassword(ctx, passwordController.text);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurpleAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text('Unlock'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _validatePassword(BuildContext dialogContext, String password) {
+    if (password == 'student123') {
+      Navigator.pop(dialogContext);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const StudentInfoPage()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Incorrect password'),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  PHONE NUMBER DETECTION — makes phone numbers clickable
+  //  in advert bot content with call/copy options
+  // ─────────────────────────────────────────────────────────────
+  static final RegExp _phoneRegex = RegExp(
+    r'(?:\+?\d[\d\s\-]{6,14}\d)',
+  );
+
+  Widget _buildRichTextWithPhones(BuildContext ctx, String text) {
+    final matches = _phoneRegex.allMatches(text).toList();
+    if (matches.isEmpty) {
+      return Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white70,
+          fontSize: 16,
+          height: 1.6,
+        ),
+      );
+    }
+
+    final spans = <InlineSpan>[];
+    int lastEnd = 0;
+
+    for (final match in matches) {
+      // Add text before this phone number
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastEnd, match.start),
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 16,
+            height: 1.6,
+          ),
+        ));
+      }
+
+      // Add the clickable phone number
+      final phoneNumber = match.group(0)!;
+      spans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: InkWell(
+          onTap: () => _showPhoneOptionsDialog(ctx, phoneNumber),
+          borderRadius: BorderRadius.circular(6),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.greenAccent.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: Colors.greenAccent.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.phone, size: 14, color: Colors.greenAccent),
+                const SizedBox(width: 4),
+                Text(
+                  phoneNumber,
+                  style: const TextStyle(
+                    color: Colors.greenAccent,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.greenAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ));
+
+      lastEnd = match.end;
+    }
+
+    // Add remaining text after last match
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastEnd),
+        style: const TextStyle(
+          color: Colors.white70,
+          fontSize: 16,
+          height: 1.6,
+        ),
+      ));
+    }
+
+    return RichText(text: TextSpan(children: spans));
+  }
+
+  void _showPhoneOptionsDialog(BuildContext ctx, String phoneNumber) {
+    final cleanNumber = phoneNumber.replaceAll(RegExp(r'[\s\-]'), '');
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return Container(
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E2E),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.phone, color: Colors.greenAccent, size: 28),
+                    const SizedBox(width: 12),
+                    Text(
+                      phoneNumber,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Call option
+              _buildPhoneOption(
+                icon: Icons.call,
+                label: 'Call',
+                subtitle: 'Make a phone call',
+                color: Colors.greenAccent,
+                onTap: () {
+                  Navigator.pop(sheetCtx);
+                  launchUrl(Uri.parse('tel:$cleanNumber'));
+                },
+              ),
+              // SMS option
+              _buildPhoneOption(
+                icon: Icons.message,
+                label: 'Send SMS',
+                subtitle: 'Open messaging app',
+                color: Colors.blueAccent,
+                onTap: () {
+                  Navigator.pop(sheetCtx);
+                  launchUrl(Uri.parse('sms:$cleanNumber'));
+                },
+              ),
+              // Copy option
+              _buildPhoneOption(
+                icon: Icons.copy,
+                label: 'Copy Number',
+                subtitle: 'Copy to clipboard',
+                color: Colors.orangeAccent,
+                onTap: () {
+                  Navigator.pop(sheetCtx);
+                  Clipboard.setData(ClipboardData(text: cleanNumber));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('📋 Copied: $cleanNumber'),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPhoneOption({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: color, size: 24),
+      ),
+      title: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(color: Colors.white38, fontSize: 12),
+      ),
+      trailing: Icon(Icons.chevron_right, color: color.withOpacity(0.5)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
     );
   }
 
@@ -1043,8 +1413,9 @@ class _HomePageState extends State<HomePage> {
     if (kIsWeb) {
       return '${Uri.base.origin}$url';
     }
-    return 'http://localhost:3000$url';
+    return '${ApiConfig.baseUrl}$url';
   }
+
 
   String _formatDate(dynamic date) {
     if (date is DateTime) {

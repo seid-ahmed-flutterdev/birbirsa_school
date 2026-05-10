@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
@@ -7,6 +8,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../core/app_colors.dart';
 import '../widgets/glass_card.dart';
+import '../config/api_config.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  CONTENT PREVIEW PAGE
@@ -37,8 +39,9 @@ class _ContentPreviewPageState extends State<ContentPreviewPage> {
     if (kIsWeb) {
       return '${Uri.base.origin}$url';
     }
-    return 'http://localhost:3000$url';
+    return '${ApiConfig.baseUrl}$url';
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +68,7 @@ class _ContentPreviewPageState extends State<ContentPreviewPage> {
                 final absUrl = _resolveUrl(rawUrl);
                 launchUrl(
                   Uri.parse(absUrl),
-                  mode: LaunchMode.externalApplication,
+                  mode: LaunchMode.platformDefault,
                 );
               },
               tooltip: 'Open in Browser',
@@ -135,7 +138,7 @@ class _ContentPreviewPageState extends State<ContentPreviewPage> {
               ElevatedButton.icon(
                 onPressed: () => launchUrl(
                   Uri.parse(absUrl!),
-                  mode: LaunchMode.externalApplication,
+                  mode: LaunchMode.platformDefault,
                 ),
                 icon: const Icon(Icons.open_in_new),
                 label: const Text(
@@ -183,14 +186,9 @@ class _ContentPreviewPageState extends State<ContentPreviewPage> {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: GlassCard(
-                  child: Text(
+                  child: _buildRichTextWithPhones(
+                    context,
                     widget.item['title'] ?? '',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      height: 1.6,
-                    ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -257,6 +255,229 @@ class _ContentPreviewPageState extends State<ContentPreviewPage> {
           ),
         ],
       ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  PHONE NUMBER DETECTION — clickable phone numbers with
+  //  call / SMS / copy options
+  // ─────────────────────────────────────────────────────────────
+  static final RegExp _phoneRegex = RegExp(
+    r'(?:\+?\d[\d\s\-]{6,14}\d)',
+  );
+
+  Widget _buildRichTextWithPhones(BuildContext ctx, String text) {
+    final matches = _phoneRegex.allMatches(text).toList();
+    if (matches.isEmpty) {
+      return Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          height: 1.6,
+        ),
+        textAlign: TextAlign.center,
+      );
+    }
+
+    final spans = <InlineSpan>[];
+    int lastEnd = 0;
+
+    for (final match in matches) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastEnd, match.start),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            height: 1.6,
+          ),
+        ));
+      }
+
+      final phoneNumber = match.group(0)!;
+      spans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: InkWell(
+          onTap: () => _showPhoneOptionsDialog(phoneNumber),
+          borderRadius: BorderRadius.circular(6),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.greenAccent.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: Colors.greenAccent.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.phone, size: 14, color: Colors.greenAccent),
+                const SizedBox(width: 4),
+                Text(
+                  phoneNumber,
+                  style: const TextStyle(
+                    color: Colors.greenAccent,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.greenAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ));
+
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastEnd),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          height: 1.6,
+        ),
+      ));
+    }
+
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(children: spans),
+    );
+  }
+
+  void _showPhoneOptionsDialog(String phoneNumber) {
+    final cleanNumber = phoneNumber.replaceAll(RegExp(r'[\s\-]'), '');
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return Container(
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E2E),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.phone, color: Colors.greenAccent, size: 28),
+                    const SizedBox(width: 12),
+                    Text(
+                      phoneNumber,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildPhoneOption(
+                icon: Icons.call,
+                label: 'Call',
+                subtitle: 'Make a phone call',
+                color: Colors.greenAccent,
+                onTap: () {
+                  Navigator.pop(sheetCtx);
+                  launchUrl(Uri.parse('tel:$cleanNumber'));
+                },
+              ),
+              _buildPhoneOption(
+                icon: Icons.message,
+                label: 'Send SMS',
+                subtitle: 'Open messaging app',
+                color: Colors.blueAccent,
+                onTap: () {
+                  Navigator.pop(sheetCtx);
+                  launchUrl(Uri.parse('sms:$cleanNumber'));
+                },
+              ),
+              _buildPhoneOption(
+                icon: Icons.copy,
+                label: 'Copy Number',
+                subtitle: 'Copy to clipboard',
+                color: Colors.orangeAccent,
+                onTap: () {
+                  Navigator.pop(sheetCtx);
+                  Clipboard.setData(ClipboardData(text: cleanNumber));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('📋 Copied: $cleanNumber'),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPhoneOption({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: color, size: 24),
+      ),
+      title: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(color: Colors.white38, fontSize: 12),
+      ),
+      trailing: Icon(Icons.chevron_right, color: color.withOpacity(0.5)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
     );
   }
 }

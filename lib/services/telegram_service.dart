@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import '../config/api_config.dart';
 
 class TelegramService {
   static const String bot1Token =
@@ -12,27 +13,12 @@ class TelegramService {
   static const String chatId = '8319751158'; // Director's Chat ID
 
   // Backend URL — always absolute so http.post/get resolves correctly on any device
-  static String get _origin {
-    if (kIsWeb) {
-      final origin = Uri.base.origin;
-      // Local dev: force port 3000 where server.py runs
-      if (origin.contains('localhost') || origin.contains('127.0.0.1')) {
-        return 'http://localhost:3000';
-      }
-      // Check if origin has a non-standard port (e.g. 192.168.x.x:8080)
-      final uri = Uri.parse(origin);
-      if (uri.host.startsWith('192.') || uri.host.startsWith('10.')) {
-        // LAN IP — force port 3000
-        return 'http://${uri.host}:3000';
-      }
-      // Cloud deployment (Railway, Render, etc.) — same origin, no port change
-      return origin;
-    }
-    return 'http://localhost:3000';
-  }
+  // Backend URL from configuration
+  static String get _origin => ApiConfig.baseUrl;
 
-  static String get backendUrl => '$_origin/api/content';
-  static String get _proxyUrl => '$_origin/api/proxy';
+  static String get backendUrl => ApiConfig.contentUrl;
+  static String get _proxyUrl => ApiConfig.proxyUrl;
+
 
   // ─────────────────────────────────────────────────────────────
   //  DIRECT TELEGRAM URL CACHE
@@ -107,41 +93,15 @@ class TelegramService {
     );
 
     if (!serverOk) {
-      // Server unreachable — save directly to search_bot DB as fallback
-      debugPrint(
-        '⚠️ Server (port 3000) failed → trying search_bot port 3001...',
-      );
-      bool savedToBot = false;
-      try {
-        final saveRes = await http
-            .post(
-              Uri.parse('http://localhost:3001/api/save-registration'),
-              headers: {'Content-Type': 'application/json'},
-              body: json.encode({
-                'name': fullName,
-                'phone': phoneNumber,
-                'reg_id': regId,
-                'details': message,
-                'type': 'registration',
-              }),
-            )
-            .timeout(const Duration(seconds: 4));
-        savedToBot = saveRes.statusCode == 200;
-        debugPrint('✅ Saved to search_bot DB (port 3001)');
-      } catch (e) {
-        debugPrint('⚠️ Port 3001 also failed: $e');
-      }
-
       // ── ALWAYS notify the director via Telegram directly ──
       // Photo + info text appear TOGETHER as one message.
       await _sendTelegramDirectly(
         message: message,
         files: files,
-        note: savedToBot
-            ? '✅ Auto-saved to database.'
-            : '⚠️ Could not reach server. Restart RESTART_BOTS.bat and re-register.',
+        note: '⚠️ Could not reach server. Restart server and re-register.',
       );
     }
+
 
     return true;
   }
@@ -179,38 +139,13 @@ class TelegramService {
     );
 
     if (!serverOk) {
-      debugPrint(
-        '⚠️ Server (port 3000) failed → trying search_bot port 3001...',
-      );
-      bool savedToBot = false;
-      try {
-        final saveRes = await http
-            .post(
-              Uri.parse('http://localhost:3001/api/save-registration'),
-              headers: {'Content-Type': 'application/json'},
-              body: json.encode({
-                'name': fullName,
-                'phone': phoneNumber,
-                'reg_id': payId,
-                'details': message,
-                'type': 'payment',
-              }),
-            )
-            .timeout(const Duration(seconds: 4));
-        savedToBot = saveRes.statusCode == 200;
-        debugPrint('✅ Saved payment to search_bot DB (port 3001)');
-      } catch (e) {
-        debugPrint('⚠️ Port 3001 also failed: $e');
-      }
-
       await _sendTelegramDirectly(
         message: message,
         files: receipts,
-        note: savedToBot
-            ? '✅ Auto-saved to database.'
-            : '⚠️ Could not reach server. Restart RESTART_BOTS.bat and re-register.',
+        note: '⚠️ Could not reach server. Restart server and re-register.',
       );
     }
+
 
     return true;
   }
@@ -522,6 +457,9 @@ class TelegramService {
             } else if (msg['video'] != null) {
               type = 'video';
               fileId = msg['video']['file_id'] as String?;
+            } else if (msg['video_note'] != null) {
+              type = 'video';
+              fileId = msg['video_note']['file_id'] as String?;
             } else if (msg['document'] != null) {
               final doc = msg['document'] as Map<String, dynamic>;
               final mime = doc['mime_type']?.toString() ?? '';

@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "public": true,
+  "name": "birbirsa-school",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

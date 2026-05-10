@@ -78,7 +78,7 @@ class AnimatedBackground extends StatelessWidget {
         Opacity(
           opacity: 0.15,
           child: Image.network(
-            'https://images.unsplash.com/photo-1541339907198-e08756ebafe3?auto=format&fit=crop&q=80&w=2070',
+            'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=2070',
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,

@@ -1,11 +1,27 @@
 services:
   - type: web
-    name: birbirsa-school
+    name: birbirsa-backend
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app
+    # --workers=1 is CRITICAL: prevents multiple bot instances → no 409 conflicts
+    # --threads=8 handles concurrent web requests efficiently inside one process
+    # --timeout=120 prevents Render from killing slow requests
+    startCommand: gunicorn --workers=1 --threads=8 --timeout=120 --bind 0.0.0.0:$PORT main:app
+
+    # Persistent disk — keeps content.json & registrations.json safe across restarts
+    disk:
+      name: birbirsa-data
+      mountPath: /data
+      sizeGB: 1
+
     envVars:
-      - key: PORT
-        value: 10000
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: RENDER
+        value: true
+      - key: ADVERT_BOT_TOKEN
+        value: 8704157930:AAE8Q1Y_dKgIjPbdOBetsefPGAokNJLLoZo
+      - key: SCHOOL_BOT_TOKEN
+        value: 8363076420:AAEZ78VfLhgjLBFlzAEjvqf1jt10A30TPGU
+      - key: DIRECTOR_CHAT_ID
+        value: 8319751158
