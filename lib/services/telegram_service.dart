@@ -170,21 +170,29 @@ class TelegramService {
 
     try {
       if (!hasFiles) {
-        // No files — simple JSON call
-        final res = await http
-            .post(
-              notifyUrl,
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'name': name,
-                'phone': phone,
-                'reg_id': regId,
-                'details': details,
-                'type': type,
-              }),
-            )
-            .timeout(const Duration(seconds: 8));
-        return res.statusCode == 200;
+        // No files — simple JSON call, retry once on failure (Render wake-up)
+        for (int attempt = 0; attempt < 2; attempt++) {
+          try {
+            final res = await http
+                .post(
+                  notifyUrl,
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode({
+                    'name': name,
+                    'phone': phone,
+                    'reg_id': regId,
+                    'details': details,
+                    'type': type,
+                  }),
+                )
+                .timeout(const Duration(seconds: 25));
+            if (res.statusCode == 200) return true;
+          } catch (e) {
+            debugPrint('⚠️ Registration attempt ${attempt + 1} failed: $e');
+            if (attempt == 0) await Future.delayed(const Duration(seconds: 3));
+          }
+        }
+        return false;
       } else {
         // Has files — multipart
         final request = http.MultipartRequest('POST', notifyUrl);
@@ -216,7 +224,7 @@ class TelegramService {
         }
 
         final streamed = await request.send().timeout(
-          const Duration(seconds: 30),
+          const Duration(seconds: 45),
         );
         final res = await http.Response.fromStream(streamed);
         return res.statusCode == 200;

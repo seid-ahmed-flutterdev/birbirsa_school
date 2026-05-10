@@ -545,7 +545,27 @@ def _start_bots_once():
     threading.Thread(target=run_school_bot_loop, daemon=True).start()
     print('🤖 Bot threads started (advert + school)')
 
+# ─────────────────────────────────────────────────────────────
+#  KEEP-ALIVE — Prevent Render free tier from sleeping
+#  Pings own /health every 10 minutes using RENDER_EXTERNAL_URL
+# ─────────────────────────────────────────────────────────────
+def _keep_alive():
+    render_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
+    if not render_url:
+        print('ℹ️ RENDER_EXTERNAL_URL not set — keep-alive disabled')
+        return
+    print(f'💓 Keep-alive started → pinging {render_url}/health every 10 min')
+    time.sleep(30)  # Wait for server to fully start
+    while True:
+        try:
+            resp = requests.get(f'{render_url}/health', timeout=15)
+            print(f'💓 Keep-alive ping OK ({resp.status_code})')
+        except Exception as e:
+            print(f'⚠️ Keep-alive ping failed: {e}')
+        time.sleep(600)  # Every 10 minutes
+
 _start_bots_once()
+threading.Thread(target=_keep_alive, daemon=True).start()
 
 if __name__ == '__main__':
     print(f'🚀 SYSTEM ONLINE: Running on Port {PORT}')
