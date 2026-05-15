@@ -973,9 +973,8 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    // On web, open PDFs/docs directly in a new browser tab
-    // (LaunchMode.externalApplication does NOT work on Flutter Web)
-    if (kIsWeb && (type == 'pdf' || type == 'doc')) {
+    // On web, open media types that fail inside Flutter Web players
+    if (kIsWeb && (type == 'pdf' || type == 'doc' || type == 'video' || type == 'audio')) {
       final resolvedUrl = url.startsWith('http://') || url.startsWith('https://')
           ? url
           : '${Uri.base.origin}$url';
@@ -1390,16 +1389,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Get the best image URL for thumbnails in the grid.
-  /// Priority: direct_url (fast Telegram CDN, saved by bot) > proxy_url (CORS-safe fallback)
+  /// Thumbnail URL — proxy first (CORS-safe on Flutter Web), then direct Telegram CDN.
   String? _getImageUrl(Map<String, dynamic> item) {
-    final direct = item['direct_url'] as String?;   // from backend content.json
-    final proxy = item['proxy_url'] as String?;      // constructed by Flutter
+    final proxy = item['proxy_url'] as String?;
+    final direct = item['direct_url'] as String?;
     final url = item['url'] as String?;
 
-    // Use direct Telegram CDN URL first — fastest, no proxy overhead
-    if (direct != null && direct.isNotEmpty) return direct;
     if (proxy != null && proxy.isNotEmpty) return _resolveUrl(proxy);
+    if (direct != null && direct.isNotEmpty) return direct;
     if (url != null && url.isNotEmpty) return _resolveUrl(url);
     return null;
   }

@@ -8,6 +8,7 @@ import 'home_page.dart'; // for SectionTitle, HeroHeader, MaxWidthContainer, Act
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import '../config/api_config.dart';
+import '../services/telegram_service.dart';
 
 class StudentInfoPage extends StatefulWidget {
   const StudentInfoPage({super.key});
@@ -39,10 +40,11 @@ class _StudentInfoPageState extends State<StudentInfoPage> {
     });
 
     try {
+      await TelegramService.ensureBackendAwake();
       final url = Uri.parse(
         '$_origin/api/registrations/search?q=${Uri.encodeComponent(query)}',
       );
-      final res = await http.get(url).timeout(const Duration(seconds: 8));
+      final res = await http.get(url).timeout(const Duration(seconds: 30));
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
         final list =

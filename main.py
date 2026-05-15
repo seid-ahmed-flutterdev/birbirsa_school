@@ -22,6 +22,7 @@ if sys.platform == 'win32':
 from datetime import datetime
 from flask import Flask, request, jsonify, Response, stream_with_context, send_from_directory
 from flask_cors import CORS
+# requests imported below (line 28)
 import telebot
 from telebot import types
 import requests
@@ -35,9 +36,14 @@ from urllib.parse import quote, urlparse
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 IS_RENDER = bool(os.environ.get('RENDER'))
-# Free plan: always use the app's own writable directory (no disk mount needed)
-DATA_DIR  = os.path.join(BASE_DIR, 'data')
-MEDIA_DIR = os.path.join(BASE_DIR, 'media')
+# On Render: use persistent disk at /data (see render.yaml)
+# Locally: use ./data and ./media
+if IS_RENDER and os.path.isdir('/data'):
+    DATA_DIR  = '/data'
+    MEDIA_DIR = '/data/media'
+else:
+    DATA_DIR  = os.path.join(BASE_DIR, 'data')
+    MEDIA_DIR = os.path.join(BASE_DIR, 'media')
 
 DATA_FILE = os.path.join(DATA_DIR, 'content.json')
 REG_FILE  = os.path.join(DATA_DIR, 'registrations.json')
@@ -101,7 +107,7 @@ def health_check():
         "bots": "running" if _bots_started else "starting",
         "registrations": len(regs),
         "content_items": len(content),
-        "storage": "render_disk" if IS_RENDER else "local",
+        "storage": DATA_DIR,
         "timestamp": datetime.now().isoformat()
     })
 
@@ -547,22 +553,22 @@ def _start_bots_once():
 
 # ─────────────────────────────────────────────────────────────
 #  KEEP-ALIVE — Prevent Render free tier from sleeping
-#  Pings own /health every 10 minutes using RENDER_EXTERNAL_URL
+#  Pings own /health every 5 minutes. Uses hardcoded URL as
+#  fallback because RENDER_EXTERNAL_URL is not always set.
 # ─────────────────────────────────────────────────────────────
+RENDER_APP_URL = 'https://birbirsa-secondary-school.onrender.com'
+
 def _keep_alive():
-    render_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
-    if not render_url:
-        print('ℹ️ RENDER_EXTERNAL_URL not set — keep-alive disabled')
-        return
-    print(f'💓 Keep-alive started → pinging {render_url}/health every 10 min')
+    render_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/') or RENDER_APP_URL
+    print(f'💓 Keep-alive started → pinging {render_url}/health every 5 min')
     time.sleep(30)  # Wait for server to fully start
     while True:
         try:
-            resp = requests.get(f'{render_url}/health', timeout=15)
+            resp = requests.get(f'{render_url}/health', timeout=30)
             print(f'💓 Keep-alive ping OK ({resp.status_code})')
         except Exception as e:
             print(f'⚠️ Keep-alive ping failed: {e}')
-        time.sleep(600)  # Every 10 minutes
+        time.sleep(300)  # Every 5 minutes (was 10, now safer)
 
 _start_bots_once()
 threading.Thread(target=_keep_alive, daemon=True).start()

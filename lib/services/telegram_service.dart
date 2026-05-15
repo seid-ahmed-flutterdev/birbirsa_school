@@ -19,6 +19,28 @@ class TelegramService {
   static String get backendUrl => ApiConfig.contentUrl;
   static String get _proxyUrl => ApiConfig.proxyUrl;
 
+  /// Wake Render free-tier backend before important API calls (cold start ~30–50s).
+  static Future<bool> ensureBackendAwake() async {
+    final healthUrl = Uri.parse(ApiConfig.healthUrl);
+    for (int attempt = 0; attempt < 4; attempt++) {
+      try {
+        final timeout = attempt == 0
+            ? const Duration(seconds: 60)
+            : const Duration(seconds: 30);
+        final res = await http.get(healthUrl).timeout(timeout);
+        if (res.statusCode == 200) {
+          debugPrint('✅ Backend awake (attempt ${attempt + 1})');
+          return true;
+        }
+      } catch (e) {
+        debugPrint('⚠️ Backend wake attempt ${attempt + 1}: $e');
+      }
+      if (attempt < 3) {
+        await Future.delayed(Duration(seconds: 4 * (attempt + 1)));
+      }
+    }
+    return false;
+  }
 
   // ─────────────────────────────────────────────────────────────
   //  DIRECT TELEGRAM URL CACHE
@@ -93,17 +115,16 @@ class TelegramService {
     );
 
     if (!serverOk) {
-      // ── ALWAYS notify the director via Telegram directly ──
-      // Photo + info text appear TOGETHER as one message.
       await _sendTelegramDirectly(
         message: message,
         files: files,
-        note: '⚠️ Could not reach server. Restart server and re-register.',
+        note:
+            '⚠️ Server was sleeping — record may not appear in School Bot search yet. '
+            'Director: ask student to submit again in 1 minute, or search after server wakes.',
       );
     }
 
-
-    return true;
+    return serverOk;
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -142,12 +163,13 @@ class TelegramService {
       await _sendTelegramDirectly(
         message: message,
         files: receipts,
-        note: '⚠️ Could not reach server. Restart server and re-register.',
+        note:
+            '⚠️ Server was sleeping — payment may not appear in School Bot search yet. '
+            'Director: ask family to submit again in 1 minute if needed.',
       );
     }
 
-
-    return true;
+    return serverOk;
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -162,73 +184,91 @@ class TelegramService {
     required String type,
     List<Map<String, dynamic>>? files,
   }) async {
+    await ensureBackendAwake();
+
     final notifyUrl = Uri.parse('$_origin/api/notify-registration');
     final allFiles = files ?? [];
     final images = allFiles.where(_isImage).toList();
     final docs = allFiles.where((f) => !_isImage(f)).toList();
     final hasFiles = images.isNotEmpty || docs.isNotEmpty;
 
+    final payload = jsonEncode({
+      'name': name,
+      'phone': phone,
+      'reg_id': regId,
+      'details': details,
+      'type': type,
+    });
+
     try {
       if (!hasFiles) {
-        // No files — simple JSON call, retry once on failure (Render wake-up)
-        for (int attempt = 0; attempt < 2; attempt++) {
+        for (int attempt = 0; attempt < 4; attempt++) {
           try {
             final res = await http
                 .post(
                   notifyUrl,
                   headers: {'Content-Type': 'application/json'},
-                  body: jsonEncode({
-                    'name': name,
-                    'phone': phone,
-                    'reg_id': regId,
-                    'details': details,
-                    'type': type,
-                  }),
+                  body: payload,
                 )
-                .timeout(const Duration(seconds: 25));
+                .timeout(const Duration(seconds: 45));
             if (res.statusCode == 200) return true;
+            debugPrint('⚠️ Server returned ${res.statusCode}: ${res.body}');
           } catch (e) {
             debugPrint('⚠️ Registration attempt ${attempt + 1} failed: $e');
-            if (attempt == 0) await Future.delayed(const Duration(seconds: 3));
+          }
+          if (attempt < 3) {
+            await Future.delayed(Duration(seconds: 4 * (attempt + 1)));
+            if (attempt == 1) await ensureBackendAwake();
           }
         }
         return false;
-      } else {
-        // Has files — multipart
-        final request = http.MultipartRequest('POST', notifyUrl);
-        request.fields['name'] = name;
-        request.fields['phone'] = phone;
-        request.fields['reg_id'] = regId;
-        request.fields['details'] = details;
-        request.fields['type'] = type;
-
-        for (final f in images) {
-          request.files.add(
-            http.MultipartFile.fromBytes(
-              'photos',
-              f['bytes'] as Uint8List,
-              filename: f['name'] as String,
-              contentType: _getContentType(f['name'] as String),
-            ),
-          );
-        }
-        for (final f in docs) {
-          request.files.add(
-            http.MultipartFile.fromBytes(
-              'docs',
-              f['bytes'] as Uint8List,
-              filename: f['name'] as String,
-              contentType: _getContentType(f['name'] as String),
-            ),
-          );
-        }
-
-        final streamed = await request.send().timeout(
-          const Duration(seconds: 45),
-        );
-        final res = await http.Response.fromStream(streamed);
-        return res.statusCode == 200;
       }
+
+      for (int attempt = 0; attempt < 3; attempt++) {
+        try {
+          final request = http.MultipartRequest('POST', notifyUrl);
+          request.fields['name'] = name;
+          request.fields['phone'] = phone;
+          request.fields['reg_id'] = regId;
+          request.fields['details'] = details;
+          request.fields['type'] = type;
+
+          for (final f in images) {
+            request.files.add(
+              http.MultipartFile.fromBytes(
+                'photos',
+                f['bytes'] as Uint8List,
+                filename: f['name'] as String,
+                contentType: _getContentType(f['name'] as String),
+              ),
+            );
+          }
+          for (final f in docs) {
+            request.files.add(
+              http.MultipartFile.fromBytes(
+                'docs',
+                f['bytes'] as Uint8List,
+                filename: f['name'] as String,
+                contentType: _getContentType(f['name'] as String),
+              ),
+            );
+          }
+
+          final streamed = await request.send().timeout(
+            const Duration(seconds: 90),
+          );
+          final res = await http.Response.fromStream(streamed);
+          if (res.statusCode == 200) return true;
+          debugPrint('⚠️ Multipart attempt ${attempt + 1}: ${res.statusCode}');
+        } catch (e) {
+          debugPrint('⚠️ Multipart attempt ${attempt + 1} failed: $e');
+        }
+        if (attempt < 2) {
+          await Future.delayed(Duration(seconds: 5 * (attempt + 1)));
+          await ensureBackendAwake();
+        }
+      }
+      return false;
     } catch (e) {
       debugPrint('❌ _notifyServerWithFiles failed: $e');
       return false;
@@ -404,9 +444,10 @@ class TelegramService {
 
     // ── TRY 1: Backend API (server.py) ──
     try {
+      await ensureBackendAwake();
       final res = await http
           .get(Uri.parse(backendUrl))
-          .timeout(const Duration(seconds: 8));
+          .timeout(const Duration(seconds: 30));
       if (res.statusCode == 200) {
         final List data = json.decode(res.body);
         debugPrint('✅ Fetched ${data.length} items from Backend');

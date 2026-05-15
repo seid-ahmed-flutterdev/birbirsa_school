@@ -104,7 +104,8 @@ class _ContentPreviewPageState extends State<ContentPreviewPage> {
                   child: CircularProgressIndicator(color: AppColors.highlight),
                 );
               },
-              errorBuilder: (context, error, stack) => _errorWidget('image'),
+              errorBuilder: (context, error, stack) =>
+                  _errorWidget('image', absUrl),
             ),
           ),
         );
@@ -241,7 +242,7 @@ class _ContentPreviewPageState extends State<ContentPreviewPage> {
     );
   }
 
-  Widget _errorWidget(String type) {
+  Widget _errorWidget(String type, [String? openUrl]) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -249,10 +250,24 @@ class _ContentPreviewPageState extends State<ContentPreviewPage> {
           const Icon(Icons.broken_image, size: 80, color: Colors.white24),
           const SizedBox(height: 12),
           Text(
-            'Could not load $type.\nCheck server connection.',
+            'Could not load $type.\nThe server may be waking up — try Open below.',
             style: const TextStyle(color: Colors.white54),
             textAlign: TextAlign.center,
           ),
+          if (openUrl != null && openUrl.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => launchUrl(
+                Uri.parse(openUrl),
+                mode: LaunchMode.platformDefault,
+              ),
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Open in browser'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.highlight,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -541,10 +556,27 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
-      return const Center(
-        child: Text(
-          'Error loading video',
-          style: TextStyle(color: Colors.white54),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Could not play video in browser',
+              style: TextStyle(color: Colors.white54),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => launchUrl(
+                Uri.parse(widget.url),
+                mode: LaunchMode.platformDefault,
+              ),
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Open video in browser'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.highlight,
+              ),
+            ),
+          ],
         ),
       );
     }

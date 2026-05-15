@@ -71,7 +71,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     setState(() => _isSubmitting = true);
 
-    final success = await TelegramService.sendRegistration(
+    final serverSaved = await TelegramService.sendRegistration(
       fullName: _nameController.text,
       fatherName: _fatherNameController.text,
       motherName: _motherNameController.text,
@@ -84,28 +84,34 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     setState(() => _isSubmitting = false);
 
-    if (success) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: AppColors.accent,
-          title: const Text('Success!', style: TextStyle(color: Colors.white)),
-          content: const Text(
-            'Your registration request has been submitted successfully.',
-            style: TextStyle(color: Colors.white70),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'OK',
-                style: TextStyle(color: AppColors.highlight),
-              ),
-            ),
-          ],
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.accent,
+        title: Text(
+          serverSaved ? 'Success!' : 'Sent to director',
+          style: const TextStyle(color: Colors.white),
         ),
-      );
-    }
+        content: Text(
+          serverSaved
+              ? 'Your registration was saved. The director was notified on Telegram.'
+              : 'The director received your form on Telegram, but the school server was waking up. '
+                  'Please wait one minute and submit again if the School Bot cannot find your record.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'OK',
+              style: TextStyle(color: AppColors.highlight),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
